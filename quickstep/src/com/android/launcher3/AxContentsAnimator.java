@@ -22,11 +22,12 @@ import static com.android.launcher3.LauncherState.OVERVIEW;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
+import android.animation.ValueAnimator;
 import android.util.Pair;
 import android.view.View;
 
 import com.android.app.animation.Animations;
+import com.android.app.animation.Interpolators;
 import com.android.launcher3.uioverrides.QuickstepLauncher;
 import com.android.quickstep.util.AxAnimationEngine;
 
@@ -57,31 +58,60 @@ final class AxContentsAnimator {
             mUpdatesPaused = true;
             launcher.pauseExpensiveViewUpdates();
         }
-        for (int i = 0; i < views.size(); i++) {
-            playAppOpen(animator, views.get(i), startScales.get(i));
-        }
+
+        final float[] lut = AxAnimationEngine.HOME_APP_OPEN_LUT;
+        final float targetScale = AxAnimationEngine.APP_OPEN_HOME_SCALE;
+        final int viewCount = views.size();
+
+        ValueAnimator progress = ValueAnimator.ofFloat(0f, 1f);
+        progress.setDuration(AxAnimationEngine.APP_OPEN_HOME_DURATION);
+        progress.setInterpolator(Interpolators.LINEAR);
+        progress.addUpdateListener(animation -> {
+            float p = (float) animation.getAnimatedValue();
+            float eased = AxAnimationEngine.lut(lut, p);
+            for (int i = 0; i < viewCount; i++) {
+                View v = views.get(i);
+                float s = startScales.get(i);
+                SCALE_PROPERTY.set(v, s + (targetScale - s) * eased);
+            }
+        });
+
+        views.forEach(view -> view.setLayerType(View.LAYER_TYPE_HARDWARE, null));
+
+        animator.play(progress);
         animator.setStartDelay(startDelay);
+
         Runnable endListener =
                 () -> {
-                    if (mToken != token) {
-                        return;
+                    boolean isCurrent = (mToken == token);
+                    if (isCurrent) {
+                        mToken = null;
                     }
-                    mToken = null;
-                    views.forEach(
-                            view -> {
-                                SCALE_PROPERTY.set(view, 1f);
-                                view.setLayerType(View.LAYER_TYPE_NONE, null);
-                                Animations.Companion.setOngoingAnimation(view, null);
-                            });
-                    if (mUpdatesPaused) {
-                        mUpdatesPaused = false;
-                        launcher.resumeExpensiveViewUpdates();
+
+                    for (int i = 0; i < viewCount; i++) {
+                        views.get(i).setLayerType(View.LAYER_TYPE_NONE, null);
+                    }
+
+                    if (isCurrent) {
+                        for (int i = 0; i < viewCount; i++) {
+                            SCALE_PROPERTY.set(views.get(i), 1f);
+                            Animations.Companion.setOngoingAnimation(views.get(i), null);
+                        }
+                        if (mUpdatesPaused) {
+                            mUpdatesPaused = false;
+                            launcher.resumeExpensiveViewUpdates();
+                        }
                     }
                 };
         animator.addListener(
                 new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
+                        endListener.run();
+                    }
+
+                    @Override
+                    public void onAnimationCancel(Animator animation) {
                         endListener.run();
                     }
                 });
@@ -102,19 +132,6 @@ final class AxContentsAnimator {
             views.add(hotseat);
         }
         return views;
-    }
-
-    private static void playAppOpen(AnimatorSet animator, View view, float startScale) {
-        SCALE_PROPERTY.set(view, startScale);
-        view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        Animations.Companion.setOngoingAnimation(view, animator);
-
-        ObjectAnimator scale =
-                ObjectAnimator.ofFloat(
-                        view, SCALE_PROPERTY, startScale, AxAnimationEngine.APP_OPEN_HOME_SCALE);
-        scale.setDuration(AxAnimationEngine.APP_OPEN_HOME_DURATION);
-        scale.setInterpolator(AxAnimationEngine.APP_OPEN_HOME_INTERPOLATOR);
-        animator.play(scale);
     }
 
     private record Token() {}

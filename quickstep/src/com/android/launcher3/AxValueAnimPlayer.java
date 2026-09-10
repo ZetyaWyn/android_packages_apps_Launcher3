@@ -221,7 +221,9 @@ final class AxValueAnimPlayer {
             return;
         }
         updateInsetTarget();
-        float positionProgress = mOpeningInterpolator.getInterpolation(percent);
+        float positionProgress =
+                AxAnimationEngine.lut(
+                        AxAnimationEngine.APP_OPEN_WINDOW_POSITION_LUT, percent);
         AxFloatingFrame frame =
                 mCalculator.calculate(
                         mWindowTargetBounds,

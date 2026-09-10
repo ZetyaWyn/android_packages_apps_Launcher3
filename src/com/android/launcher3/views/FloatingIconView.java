@@ -248,6 +248,9 @@ public class FloatingIconView extends FrameLayout implements
             // End runnable also ends the reveal animator, so we manually handle it here.
             mClipIconView.endReveal();
         }
+        // Drop the hardware layer now that the transform animation is done; keeping it around
+        // permanently wastes GPU memory and can itself cause jank on the next animation.
+        setLayerType(View.LAYER_TYPE_NONE, null);
     }
 
     /**
@@ -596,6 +599,12 @@ public class FloatingIconView extends FrameLayout implements
         if (mFadeOutView != null) {
             mFadeOutView.postForceHideDotRingAsFloatingIconViewCompanion(true);
         }
+        // Cache this view (and its icon/clip content) into a hardware layer for the duration of
+        // the open/close transform. Scale, translation and alpha changes are then applied purely
+        // on the GPU compositor instead of re-rasterizing the drawable every frame, which is the
+        // main source of dropped frames (stutter) during app launch/close on lower-powered
+        // devices.
+        setLayerType(View.LAYER_TYPE_HARDWARE, null);
     }
 
     @Override
