@@ -21,9 +21,11 @@ import static com.android.launcher3.QuickstepTransitionManager.STATUS_BAR_TRANSI
 import static com.android.launcher3.QuickstepTransitionManager.STATUS_BAR_TRANSITION_PRE_DELAY;
 
 import android.animation.AnimatorSet;
+import android.util.Log;
 import android.util.Pair;
 import android.view.RemoteAnimationTarget;
 import android.view.View;
+import android.view.ViewRootImpl;
 
 import androidx.annotation.Nullable;
 
@@ -34,12 +36,29 @@ import com.android.quickstep.util.AxAnimationEngine;
 import com.android.quickstep.views.TaskView;
 
 final class AxQuickstepTransitionManagerDelegate {
+    private static final String TAG = "AxQSTransitionDelegate";
+
     private final QuickstepLauncher mLauncher;
     private final AxContentsAnimator mContentsAnimator = new AxContentsAnimator();
 
     AxQuickstepTransitionManagerDelegate(QuickstepLauncher launcher) {
         mLauncher = launcher;
         AxHomePackageObserver.INSTANCE.get(launcher);
+        applyHighRefreshRateHint();
+    }
+
+    private void applyHighRefreshRateHint() {
+        try {
+            View decor = mLauncher.getWindow().getDecorView();
+            ViewRootImpl viewRootImpl = decor.getViewRootImpl();
+            if (viewRootImpl == null) {
+                decor.post(this::applyHighRefreshRateHint);
+                return;
+            }
+            viewRootImpl.getView().setRequestedFrameRate(120f);
+        } catch (Throwable t) {
+            Log.w(TAG, "Unable to set launcher frame rate hint", t);
+        }
     }
 
     boolean useAppOpenAnimation(View sourceView) {
