@@ -473,10 +473,9 @@ public abstract class AxStackRecentsView<
         }
         if (mDismissDragTask == null) {
             mDismissDragTask = taskView;
-            mDismissDragStartScroll = getPagedOrientationHandler().getPrimaryScroll(this);
-            float gapDirection = getDismissDragGapDirection(indexOfChild(taskView));
-            mDismissDragBehindTask = getDismissDragBehindTask(
-                    taskView, mDismissDragStartScroll, gapDirection, getDismissDragPageDistance());
+            int dismissedIndex = indexOfChild(taskView);
+            mDismissDragStartScroll = getScrollForPage(dismissedIndex);
+            mDismissDragBehindTask = getDismissDragBehindTask(taskView);
             mDismissDragTargetScroll = mDismissDragBehindTask == null
                     ? mDismissDragStartScroll
                     : getScrollForPage(indexOfChild(mDismissDragBehindTask));
@@ -1123,31 +1122,11 @@ public abstract class AxStackRecentsView<
     }
 
     @Nullable
-    private TaskView getDismissDragBehindTask(
-            TaskView dismissedTask, int startScroll, float gapDirection, float pageDistance) {
-        if (gapDirection == 0f) {
+    private TaskView getDismissDragBehindTask(TaskView dismissedTask) {
+        int dismissedIndex = indexOfChild(dismissedTask);
+        if (dismissedIndex == INVALID_PAGE) {
             return null;
         }
-        int targetScroll = startScroll + Math.round(
-                getLogicalDelta(-gapDirection * pageDistance));
-        TaskView behindTask = null;
-        float closestDistance = Float.MAX_VALUE;
-        int childCount = getChildCount();
-        for (int index = 0; index < childCount; index++) {
-            if (!(getChildAt(index) instanceof TaskView taskView)
-                    || taskView == dismissedTask || !isStackTask(taskView)) {
-                continue;
-            }
-            float distance = Math.abs(getVisualDelta(getScrollForPage(index) - targetScroll));
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                behindTask = taskView;
-            }
-        }
-        return behindTask;
-    }
-
-    private float getDismissDragGapDirection(int dismissedIndex) {
         int lastTaskIndex = INVALID_PAGE;
         for (int index = getChildCount() - 1; index >= 0; index--) {
             if (getChildAt(index) instanceof TaskView taskView && isStackTask(taskView)) {
@@ -1156,20 +1135,14 @@ public abstract class AxStackRecentsView<
             }
         }
         if (lastTaskIndex == INVALID_PAGE) {
-            return 0f;
+            return null;
         }
-        int currentPage = getCurrentPage();
-        if (currentPage == INVALID_PAGE) {
-            return 0f;
+        int targetIndex = dismissedIndex < lastTaskIndex ? dismissedIndex + 1 : dismissedIndex - 1;
+        if (targetIndex < 0 || targetIndex >= getChildCount()) {
+            return null;
         }
-        currentPage = Math.min(currentPage, lastTaskIndex);
-        boolean reflowTowardsStart = currentPage == lastTaskIndex || dismissedIndex < currentPage;
-        float logicalDirection = (reflowTowardsStart ? -1f : 1f) * (mIsRtl ? 1f : -1f);
-        return Math.signum(getVisualDelta(logicalDirection));
-    }
-
-    private float getLogicalDelta(float visualDelta) {
-        return mIsRtl ? -visualDelta : visualDelta;
+        View child = getChildAt(targetIndex);
+        return (child instanceof TaskView taskView && isStackTask(taskView)) ? taskView : null;
     }
 
     private void clearDismissDragPreview() {
