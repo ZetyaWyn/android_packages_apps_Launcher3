@@ -18,6 +18,7 @@ package com.android.launcher3.states
 import android.content.Context
 import com.android.launcher3.Launcher
 import com.android.launcher3.LauncherState
+import com.android.launcher3.LauncherUiState
 import com.android.launcher3.logging.StatsLogManager
 import com.android.launcher3.views.ActivityContext
 
@@ -53,6 +54,10 @@ class EditModeState(id: Int) : LauncherState(id, StatsLogManager.LAUNCHER_STATE_
 
     override fun getWorkspaceBackgroundAlpha(launcher: Launcher): Float {
         return 0.2f
+    }
+
+    override fun getVisibleElements(launcherUiState: LauncherUiState): Int {
+        return super.getVisibleElements(launcherUiState) and WORKSPACE_PAGE_INDICATOR.inv()
     }
 
     override fun onLeavingState(launcher: Launcher?, toState: LauncherState?) {

@@ -874,7 +874,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         final int pendingAddWidgetId = requestArgs.getWidgetId();
 
-        Runnable exitSpringLoaded = null;
+        Runnable exitSpringLoaded = isInState(EDIT_MODE) ? null
+                : () -> mStateManager.goToState(NORMAL, SPRING_LOADED_EXIT_DELAY);
 
         if (requestCode == REQUEST_BIND_APPWIDGET) {
             // This is called only if the user did not previously have permissions to bind widgets
@@ -1167,11 +1168,13 @@ public class Launcher extends StatefulActivity<LauncherState>
             ItemInstallQueue.INSTANCE.get(this).pauseModelPush(FLAG_DRAG_AND_DROP);
             getRotationHelper().setCurrentStateRequest(REQUEST_LOCK);
 
-            mWorkspace.showPageIndicatorAtCurrentScroll();
+            if (state == SPRING_LOADED) {
+                mWorkspace.showPageIndicatorAtCurrentScroll();
+            }
             mWorkspace.setClipChildren(false);
         }
         // When multiple pages are visible or desktop devices, show persistent page indicator
-        mWorkspace.getPageIndicator().setShouldAutoHide(!state.hasFlag(FLAG_MULTI_PAGE)
+        mWorkspace.getPageIndicator().setShouldAutoHide((!state.hasFlag(FLAG_MULTI_PAGE) || state == EDIT_MODE)
                 && !shouldEnableMouseInteractionChanges(mWorkspace.getContext()));
 
         mPrevLauncherState = mStateManager.getCurrentStableState();
@@ -1927,7 +1930,8 @@ public class Launcher extends StatefulActivity<LauncherState>
 
         // Exit spring loaded mode if necessary after adding the widget; unless config activity was
         // started.
-        Runnable onComplete = null;
+        Runnable onComplete = isInState(EDIT_MODE) ? null : () -> mStateManager.goToState(
+                NORMAL, SPRING_LOADED_EXIT_DELAY);
         completeAddAppWidget(appWidgetId, info, boundWidget,
                 addFlowHandler.getProviderInfo(this), addFlowHandler.needsConfigure(),
                 false, widgetPreviewBitmap);

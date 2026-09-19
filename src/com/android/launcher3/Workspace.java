@@ -1386,7 +1386,7 @@ public class Workspace<T extends View & PageIndicator> extends PagedView<T>
     }
 
     public void showPageIndicatorAtCurrentScroll() {
-        if (mPageIndicator != null) {
+        if (mPageIndicator != null && !mLauncher.isInState(EDIT_MODE)) {
             mPageIndicator.setScroll(getScrollX(), computeMaxScroll());
         }
     }

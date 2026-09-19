@@ -96,8 +96,9 @@ public class PinShortcutRequestActivityInfo extends ShortcutConfigActivityInfo {
 
     @Override
     public WorkspaceItemInfo createWorkspaceItemInfo() {
-        long transitionDuration = EDIT_MODE
-                .getTransitionDuration(Launcher.getLauncher(mContext), true /* isToState */);
+        Launcher launcher = Launcher.getLauncher(mContext);
+        long transitionDuration = (launcher.isInState(EDIT_MODE) ? EDIT_MODE : SPRING_LOADED)
+                .getTransitionDuration(launcher, true /* isToState */);
         // Total duration for the drop animation to complete.
         long duration = mContext.getResources().getInteger(R.integer.config_dropAnimMaxDuration) +
                 SPRING_LOADED_EXIT_DELAY + transitionDuration;
