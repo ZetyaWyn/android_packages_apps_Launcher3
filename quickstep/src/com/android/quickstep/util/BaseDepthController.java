@@ -157,7 +157,7 @@ public class BaseDepthController implements LauncherPrefChangeListener {
                 LauncherPrefsExt.LAUNCHER_BLUR_ENABLED,
                 LauncherPrefsExt.LAUNCHER_BLUR_RADIUS_PCT,
                 LauncherPrefsExt.DISABLE_WALLPAPER_ZOOM);
-        SystemUiProxy.INSTANCE.get(mLauncher).setLauncherDepthWallpaperZoom(0f);
+        SystemUiProxy.INSTANCE.get(mLauncher).setLauncherWallpaperZoom(0f);
     }
 
     public void setWallpaperZoomOverride(float zoom) {
@@ -263,7 +263,7 @@ public class BaseDepthController implements LauncherPrefChangeListener {
             boolean applyImmediately, boolean skipSimilarBlur) {
         float depth = mDepth;
         SystemUiProxy.INSTANCE.get(mLauncher)
-                .setLauncherDepthWallpaperZoom(
+                .setLauncherWallpaperZoom(
                         Float.isNaN(mWallpaperZoomOverride) ? depth : mWallpaperZoomOverride);
 
         if (!BlurUtils.supportsBlursOnWindows()) {

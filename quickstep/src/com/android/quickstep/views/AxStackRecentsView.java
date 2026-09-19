@@ -181,7 +181,7 @@ public abstract class AxStackRecentsView<
             animatorSet.addListener(new AnimatorListenerAdapter() {
                 @Override
                 public void onAnimationStart(Animator animation) {
-                    AxWallpaperZoom.startZoomIn(systemUiProxy);
+                    AxWallpaperZoom.startZoomOut(systemUiProxy);
                 }
             });
             startStackEntranceAnimation(false, animatorSet);
@@ -412,7 +412,7 @@ public abstract class AxStackRecentsView<
             @Override
             public void onAnimationStart(Animator animator) {
                 if (zoomWallpaper) {
-                    AxWallpaperZoom.startZoomOut(SystemUiProxy.INSTANCE.get(getContext()));
+                    AxWallpaperZoom.startZoomIn(SystemUiProxy.INSTANCE.get(getContext()));
                 }
                 if (!useStackAnimation || mLaunchTask != taskView) {
                     return;

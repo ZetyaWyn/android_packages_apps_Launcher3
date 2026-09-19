@@ -24,7 +24,6 @@ import com.android.quickstep.SystemUiProxy;
 
 public final class AxWallpaperZoom {
     private static final String TAG = "AxWallpaperZoom";
-    private static final float EPSILON = 0.0001f;
 
     private static ValueAnimator sAnimator;
     private static float sZoomOut;
@@ -32,20 +31,29 @@ public final class AxWallpaperZoom {
 
     private AxWallpaperZoom() {}
 
-    public static Animator createAppOpenAnimator(SystemUiProxy systemUiProxy, boolean enabled) {
-        return enabled ? createZoomOutAnimator(systemUiProxy) : null;
+    public static void reset(SystemUiProxy systemUiProxy) {
+        if (sAnimator != null) {
+            sAnimator.cancel();
+            sAnimator = null;
+        }
+        sToken = null;
+        setZoom(systemUiProxy, 0f, true);
     }
 
-    public static void startZoomOut(SystemUiProxy systemUiProxy) {
-        createZoomOutAnimator(systemUiProxy).start();
+    public static Animator createAppOpenAnimator(SystemUiProxy systemUiProxy, boolean enabled) {
+        return enabled ? createZoomInAnimator(systemUiProxy) : null;
+    }
+
+    public static void startZoomIn(SystemUiProxy systemUiProxy) {
+        createZoomInAnimator(systemUiProxy).start();
     }
 
     public static void startHomeGesture(SystemUiProxy systemUiProxy) {
         AxAnimationEngine.trace(TAG, "homeGesture start");
-        startZoomIn(systemUiProxy);
+        startZoomOut(systemUiProxy);
     }
 
-    public static void startZoomIn(SystemUiProxy systemUiProxy) {
+    public static void startZoomOut(SystemUiProxy systemUiProxy) {
         createAnimator(
                 systemUiProxy,
                 0f,
@@ -53,7 +61,7 @@ public final class AxWallpaperZoom {
                 AxAnimationEngine.WALLPAPER_HOME_GESTURE_INTERPOLATOR).start();
     }
 
-    private static ValueAnimator createZoomOutAnimator(SystemUiProxy systemUiProxy) {
+    private static ValueAnimator createZoomInAnimator(SystemUiProxy systemUiProxy) {
         return createAnimator(
                 systemUiProxy,
                 AxAnimationEngine.WALLPAPER_APP_OPEN_ZOOM_OUT,
@@ -122,7 +130,7 @@ public final class AxWallpaperZoom {
 
     private static void setZoom(SystemUiProxy systemUiProxy, float zoomOut, boolean force) {
         float boundedZoom = boundToUnit(zoomOut);
-        if (!force && Math.abs(sZoomOut - boundedZoom) < EPSILON) {
+        if (!force && Float.compare(sZoomOut, boundedZoom) == 0) {
             return;
         }
         sZoomOut = boundedZoom;

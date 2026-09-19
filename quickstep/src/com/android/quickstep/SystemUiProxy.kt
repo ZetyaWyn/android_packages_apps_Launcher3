@@ -215,31 +215,6 @@ class SystemUiProxy @Inject constructor(
     private var lastLauncherKeepClearAreaHeight = 0
     private var lastLauncherKeepClearAreaHeightVisible = false
     private var lastLauncherWallpaperZoom = 0f
-    private var lastLauncherDepthWallpaperZoom = 0f
-    private var isWallpaperZoomDisabled =
-        launcherPrefs.get(LauncherPrefsExt.DISABLE_WALLPAPER_ZOOM)
-    private val wallpaperZoomPreferenceListener =
-        LauncherPrefChangeListener {
-            val disabled = launcherPrefs.get(LauncherPrefsExt.DISABLE_WALLPAPER_ZOOM)
-            if (isWallpaperZoomDisabled != disabled) {
-                isWallpaperZoomDisabled = disabled
-                setLauncherWallpaperZoom(lastLauncherWallpaperZoom)
-                setLauncherDepthWallpaperZoom(lastLauncherDepthWallpaperZoom)
-            }
-        }
-
-    init {
-        launcherPrefs.addListener(
-            wallpaperZoomPreferenceListener,
-            LauncherPrefsExt.DISABLE_WALLPAPER_ZOOM,
-        )
-        lifecycle.addCloseable {
-            launcherPrefs.removeListener(
-                wallpaperZoomPreferenceListener,
-                LauncherPrefsExt.DISABLE_WALLPAPER_ZOOM,
-            )
-        }
-    }
 
     private val asyncHandler =
         Handler(lightweightBackgroundExecutor.looper) { handleMessageAsync(it) }
@@ -391,7 +366,6 @@ class SystemUiProxy @Inject constructor(
         setUnfoldAnimationListener(unfoldAnimationListener)
         setDesktopTaskListener(desktopTaskListener)
         setLauncherWallpaperZoom(lastLauncherWallpaperZoom)
-        setLauncherDepthWallpaperZoom(lastLauncherDepthWallpaperZoom)
         setAssistantOverridesRequested(
             ContextualSearchInvoker(context).getSysUiAssistOverrideInvocationTypes()
         )
@@ -417,7 +391,6 @@ class SystemUiProxy @Inject constructor(
     @MainThread
     fun clearProxy() {
         setLauncherWallpaperZoom(0f)
-        setLauncherDepthWallpaperZoom(0f)
         setProxy(null, null, null, null, null, null, null, null, null, null, null, null, null)
     }
 
@@ -503,26 +476,12 @@ class SystemUiProxy @Inject constructor(
 
     fun setLauncherWallpaperZoom(zoomOut: Float) {
         lastLauncherWallpaperZoom = zoomOut
-        val wallpaperZoom = getWallpaperZoom(zoomOut)
-        executeWithErrorLog({ "Failed call setLauncherWallpaperZoom with arg: $wallpaperZoom" }) {
-            systemUiProxy?.setLauncherWallpaperZoom(wallpaperZoom)
+        executeWithErrorLog({ "Failed call setLauncherWallpaperZoom with arg: $zoomOut" }) {
+            systemUiProxy?.setLauncherWallpaperZoom(zoomOut)
         }
     }
 
-    fun getLauncherWallpaperZoom(): Float = getWallpaperZoom(lastLauncherWallpaperZoom)
-
-    fun setLauncherDepthWallpaperZoom(zoomOut: Float) {
-        lastLauncherDepthWallpaperZoom = zoomOut
-        val wallpaperZoom = getWallpaperZoom(zoomOut)
-        executeWithErrorLog({
-            "Failed call setLauncherDepthWallpaperZoom with arg: $wallpaperZoom"
-        }) {
-            systemUiProxy?.setLauncherDepthWallpaperZoom(wallpaperZoom)
-        }
-    }
-
-    private fun getWallpaperZoom(zoomOut: Float): Float =
-        if (isWallpaperZoomDisabled) 1f else zoomOut
+    fun getLauncherWallpaperZoom(): Float = lastLauncherWallpaperZoom
 
     fun notifyAccessibilityButtonClicked(displayId: Int) =
         executeWithErrorLog({ "Failed call notifyAccessibilityButtonClicked" }) {
