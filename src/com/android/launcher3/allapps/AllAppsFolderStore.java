@@ -22,6 +22,7 @@ import android.content.Context;
 import android.os.UserHandle;
 import android.util.Log;
 
+import com.android.launcher3.allapps.PinnedAppsStore;
 import com.android.launcher3.ConstantItem;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.R;
@@ -70,7 +71,7 @@ public final class AllAppsFolderStore {
             ConstantItem<String> item) {
         Map<String, AppInfo> appMap = new HashMap<>();
         for (AppInfo appInfo : apps) {
-            String key = PinnedApps.encode(context, appInfo);
+            String key = PinnedAppsStore.encode(context, appInfo);
             if (key != null) {
                 appMap.put(key, appInfo);
             }
@@ -107,7 +108,7 @@ public final class AllAppsFolderStore {
             ConstantItem<String> item) {
         Set<String> appKeys = new HashSet<>();
         for (AppInfo appInfo : apps) {
-            String key = PinnedApps.encode(context, appInfo);
+            String key = PinnedAppsStore.encode(context, appInfo);
             if (key != null) {
                 appKeys.add(key);
             }

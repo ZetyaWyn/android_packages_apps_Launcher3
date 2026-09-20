@@ -22,6 +22,8 @@ import android.content.Context;
 
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.allapps.AllAppsStore;
+import com.android.launcher3.ConstantItem;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.model.data.AppInfo;
 import com.android.launcher3.model.data.ItemInfo;
@@ -33,31 +35,54 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public final class PinnedApps {
+public final class PinnedAppsStore {
 
-    private PinnedApps() { }
+    private PinnedAppsStore() { }
 
     public static boolean isPinned(Context context, ItemInfo itemInfo) {
+        return isPinned(context, itemInfo, PINNED_APPS);
+    }
+
+    public static boolean isPinned(Context context, ItemInfo itemInfo,
+            ConstantItem<Set<String>> item) {
         String key = encode(context, itemInfo);
-        return key != null && LauncherPrefs.get(context).get(PINNED_APPS).contains(key);
+        return key != null && LauncherPrefs.get(context).get(item).contains(key);
     }
 
     public static void setPinned(Context context, ItemInfo itemInfo, boolean pinned) {
+        setPinned(context, itemInfo, pinned, PINNED_APPS);
+    }
+
+    public static void setPinned(Context context, ItemInfo itemInfo, boolean pinned,
+            ConstantItem<Set<String>> item) {
         String key = encode(context, itemInfo);
         if (key == null) {
             return;
         }
-        Set<String> pinnedApps = new LinkedHashSet<>(LauncherPrefs.get(context).get(PINNED_APPS));
+        Set<String> pinnedApps = new LinkedHashSet<>(LauncherPrefs.get(context).get(item));
         if (pinned ? pinnedApps.add(key) : pinnedApps.remove(key)) {
-            LauncherPrefs.get(context).put(PINNED_APPS, pinnedApps);
+            LauncherPrefs.get(context).put(item, pinnedApps);
         }
+    }
+
+    public static Set<String> getPinnedKeys(Context context) {
+        return getPinnedKeys(context, PINNED_APPS);
+    }
+
+    public static Set<String> getPinnedKeys(Context context, ConstantItem<Set<String>> item) {
+        return LauncherPrefs.get(context).get(item);
     }
 
     public static List<WorkspaceItemInfo> getPinnedWorkspaceItems(
             Context context, AllAppsStore allAppsStore) {
+        return getPinnedWorkspaceItems(context, allAppsStore, PINNED_APPS);
+    }
+
+    public static List<WorkspaceItemInfo> getPinnedWorkspaceItems(
+            Context context, AllAppsStore allAppsStore, ConstantItem<Set<String>> item) {
         List<AppInfo> appInfos = new ArrayList<>();
         Collections.addAll(appInfos, allAppsStore.getApps());
-        appInfos = getPinnedApps(context, appInfos);
+        appInfos = getPinnedApps(context, appInfos, item);
 
         List<WorkspaceItemInfo> items = new ArrayList<>(appInfos.size());
         for (AppInfo appInfo : appInfos) {
@@ -67,7 +92,12 @@ public final class PinnedApps {
     }
 
     public static List<AppInfo> getPinnedApps(Context context, List<AppInfo> apps) {
-        Set<String> pinnedApps = LauncherPrefs.get(context).get(PINNED_APPS);
+        return getPinnedApps(context, apps, PINNED_APPS);
+    }
+
+    public static List<AppInfo> getPinnedApps(Context context, List<AppInfo> apps,
+            ConstantItem<Set<String>> item) {
+        Set<String> pinnedApps = LauncherPrefs.get(context).get(item);
         if (pinnedApps.isEmpty()) {
             return Collections.emptyList();
         }
@@ -83,7 +113,7 @@ public final class PinnedApps {
     }
 
     @Nullable
-    static String encode(Context context, ItemInfo itemInfo) {
+    public static String encode(Context context, ItemInfo itemInfo) {
         ComponentName componentName = itemInfo.getTargetComponent();
         if (componentName == null) {
             return null;

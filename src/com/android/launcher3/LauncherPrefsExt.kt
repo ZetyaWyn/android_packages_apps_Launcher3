@@ -252,6 +252,12 @@ object LauncherPrefsExt {
             emptySet<String>(),
             EncryptionType.SECURE_SETTINGS,
         )
+    @JvmField val ALL_APPS_SMART_DRAWER_PINNED_APPS =
+        backedUpItem(
+            "pref_all_apps_smart_drawer_pinned_apps",
+            emptySet<String>(),
+            EncryptionType.SECURE_SETTINGS,
+        )
     @JvmField val ALL_APPS_FOLDERS =
         backedUpItem("pref_all_apps_folders", "[]", EncryptionType.SECURE_SETTINGS)
     @JvmField val ALL_APPS_SMART_DRAWER_FOLDERS =
@@ -448,6 +454,7 @@ object LauncherPrefsExt {
         ALL_APPS_HAPTIC_FEEDBACK,
         ALL_APPS_DRAWER_LAYOUT_MODE,
         PINNED_APPS,
+        ALL_APPS_SMART_DRAWER_PINNED_APPS,
         ALL_APPS_FOLDERS,
         ALL_APPS_SMART_DRAWER_FOLDERS,
         ALL_APPS_SEARCH_RESULT_APPS,

@@ -53,13 +53,12 @@ import com.android.axion.compose.preferences.DraggablePreferenceGroup
 import com.android.axion.compose.preferences.PreferenceGroup
 import com.android.axion.compose.preferences.SwitchPreference
 import com.android.launcher3.AppFilter
-import com.android.launcher3.LauncherPrefs
-import com.android.launcher3.LauncherPrefsExt
 import com.android.launcher3.R
 import com.android.launcher3.allapps.AllAppsFolderStore
 import com.android.launcher3.allapps.AllAppsFolderStore.FolderRecord
 import com.android.launcher3.allapps.AxSmartDrawerFolderStore
 import com.android.launcher3.allapps.AxSmartDrawerManager
+import com.android.launcher3.allapps.AxSmartDrawerPinnedStore
 import com.android.launcher3.util.painterResource as drawablePainterResource
 
 @Composable
@@ -407,7 +406,7 @@ private fun seedSmartDrawerFoldersIfNeeded(
     if (AxSmartDrawerFolderStore.getFolderRecords(context).isNotEmpty()) {
         return false
     }
-    val pinnedKeys = LauncherPrefs.get(context).get(LauncherPrefsExt.PINNED_APPS)
+    val pinnedKeys = AxSmartDrawerPinnedStore.getPinnedKeys(context)
     var changed = false
     for (category in AxSmartDrawerManager.getCategoryOrder()) {
         val appKeys = apps

@@ -23,6 +23,7 @@ import android.content.Context;
 import com.android.launcher3.LauncherPrefChangeListener;
 import com.android.launcher3.LauncherPrefs;
 import com.android.launcher3.allapps.BaseAllAppsAdapter.AdapterItem;
+import com.android.launcher3.allapps.PinnedAppsStore;
 import com.android.launcher3.compat.AlphabeticIndexCompat;
 import com.android.launcher3.model.data.AppInfo;
 
@@ -55,7 +56,7 @@ final class AxAllAppsListController {
     }
 
     boolean shouldShowApp(AppInfo info) {
-        return mSmartDrawerManager.isEnabled() || !PinnedApps.isPinned(mContext, info);
+        return mSmartDrawerManager.isEnabled() || !PinnedAppsStore.isPinned(mContext, info, PINNED_APPS);
     }
 
     boolean isSmartDrawerMode() {
@@ -88,7 +89,7 @@ final class AxAllAppsListController {
         List<AllAppsFolderInfo> folders = AllAppsFolderStore.getFolders(mContext, appList);
         entries.addAll(folders);
         for (AppInfo appInfo : appList) {
-            String key = PinnedApps.encode(mContext, appInfo);
+            String key = PinnedAppsStore.encode(mContext, appInfo);
             if (key == null || !folderedKeys.contains(key)) {
                 entries.add(appInfo);
             }

@@ -26,12 +26,14 @@ import static android.content.pm.ApplicationInfo.CATEGORY_UNDEFINED;
 import static android.content.pm.ApplicationInfo.CATEGORY_VIDEO;
 import static com.android.launcher3.LauncherPrefsExt.ALL_APPS_DRAWER_LAYOUT_MODE;
 import static com.android.launcher3.LauncherPrefsExt.ALL_APPS_SMART_DRAWER_FOLDERS;
-import static com.android.launcher3.LauncherPrefsExt.PINNED_APPS;
+import static com.android.launcher3.LauncherPrefsExt.ALL_APPS_SMART_DRAWER_PINNED_APPS;
 import static com.android.launcher3.LauncherPrefsExt.SHOW_ALLAPPS_PREDICTIONS;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
 
+import com.android.launcher3.allapps.AxSmartDrawerPinnedStore;
+import com.android.launcher3.allapps.PinnedAppsStore;
 import com.android.launcher3.AxPreferenceFeature;
 import com.android.launcher3.Item;
 import com.android.launcher3.LauncherPrefs;
@@ -66,7 +68,7 @@ public final class AxSmartDrawerManager extends AxPreferenceFeature {
     private static final List<Item> SMART_DRAWER_ITEMS = List.of(
             ALL_APPS_DRAWER_LAYOUT_MODE,
             ALL_APPS_SMART_DRAWER_FOLDERS,
-            PINNED_APPS,
+            ALL_APPS_SMART_DRAWER_PINNED_APPS,
             SHOW_ALLAPPS_PREDICTIONS);
 
     public static final DaggerSingletonObject<AxSmartDrawerManager> INSTANCE =
@@ -94,7 +96,7 @@ public final class AxSmartDrawerManager extends AxPreferenceFeature {
     public void setPredictedItems(List<ItemInfo> items) {
         mPredictionKeys.clear();
         for (ItemInfo item : items) {
-            String key = PinnedApps.encode(mContext, item);
+            String key = PinnedAppsStore.encode(mContext, item);
             if (key != null && !mPredictionKeys.contains(key)) {
                 mPredictionKeys.add(key);
             }
@@ -104,10 +106,10 @@ public final class AxSmartDrawerManager extends AxPreferenceFeature {
     public List<AxSmartDrawerCategory> getEntries(List<AppInfo> apps) {
         List<AxSmartDrawerCategory> entries = new ArrayList<>();
         Map<String, AppInfo> appsByKey = mapApps(apps);
-        List<AppInfo> pinnedApps = PinnedApps.getPinnedApps(mContext, apps);
+        List<AppInfo> pinnedApps = AxSmartDrawerPinnedStore.getPinnedApps(mContext, apps);
         Set<String> excludedKeys = new HashSet<>();
         for (AppInfo app : pinnedApps) {
-            String key = PinnedApps.encode(mContext, app);
+            String key = PinnedAppsStore.encode(mContext, app);
             if (key != null) {
                 excludedKeys.add(key);
             }
@@ -144,7 +146,7 @@ public final class AxSmartDrawerManager extends AxPreferenceFeature {
             groupedApps.put(category, new ArrayList<>());
         }
         for (AppInfo app : apps) {
-            String key = PinnedApps.encode(mContext, app);
+            String key = PinnedAppsStore.encode(mContext, app);
             if (key != null && excludedKeys.contains(key)) {
                 continue;
             }
@@ -168,7 +170,7 @@ public final class AxSmartDrawerManager extends AxPreferenceFeature {
         for (AllAppsFolderInfo folder : folders) {
             List<AppInfo> folderApps = new ArrayList<>();
             for (AppInfo app : folder.getApps()) {
-                String key = PinnedApps.encode(mContext, app);
+                String key = PinnedAppsStore.encode(mContext, app);
                 if (key != null && !excludedKeys.contains(key)) {
                     folderApps.add(app);
                 }
@@ -185,7 +187,7 @@ public final class AxSmartDrawerManager extends AxPreferenceFeature {
         Set<String> folderedKeys = new HashSet<>();
         for (AllAppsFolderInfo folder : folders) {
             for (AppInfo app : folder.getApps()) {
-                String key = PinnedApps.encode(mContext, app);
+                String key = PinnedAppsStore.encode(mContext, app);
                 if (key != null) {
                     folderedKeys.add(key);
                 }
@@ -197,7 +199,7 @@ public final class AxSmartDrawerManager extends AxPreferenceFeature {
     private Map<String, AppInfo> mapApps(List<AppInfo> apps) {
         Map<String, AppInfo> appsByKey = new HashMap<>();
         for (AppInfo app : apps) {
-            String key = PinnedApps.encode(mContext, app);
+            String key = PinnedAppsStore.encode(mContext, app);
             if (key != null) {
                 appsByKey.put(key, app);
             }

@@ -18,16 +18,20 @@ package com.android.launcher3.allapps;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS;
 import static com.android.launcher3.LauncherSettings.Favorites.CONTAINER_ALL_APPS_PREDICTION;
 
+import android.content.Context;
 import android.view.View;
 
 import androidx.annotation.NonNull;
 
 import com.android.launcher3.AbstractFloatingView;
-import com.android.launcher3.R;
+import com.android.launcher3.allapps.AxSmartDrawerManager;
+import com.android.launcher3.allapps.AxSmartDrawerPinnedStore;
+import com.android.launcher3.allapps.PinnedAppsStore;
 import com.android.launcher3.folder.AxFolderExt;
 import com.android.launcher3.model.data.ItemInfo;
 import com.android.launcher3.model.data.ItemInfoWithIcon;
 import com.android.launcher3.popup.SystemShortcut;
+import com.android.launcher3.R;
 import com.android.launcher3.views.ActivityContext;
 
 public final class AxAllAppsShortcuts {
@@ -59,7 +63,7 @@ public final class AxAllAppsShortcuts {
 
         PinToDrawer(T target, ItemInfo itemInfo, @NonNull View originalView) {
             this(target, itemInfo, originalView,
-                    PinnedApps.isPinned(originalView.getContext(), itemInfo));
+                    isPinned(originalView.getContext(), itemInfo));
         }
 
         private PinToDrawer(T target, ItemInfo itemInfo, @NonNull View originalView,
@@ -72,8 +76,20 @@ public final class AxAllAppsShortcuts {
 
         @Override
         public void onClick(View view) {
-            PinnedApps.setPinned(view.getContext(), mItemInfo, !mIsPinned);
+            setPinned(view.getContext(), mItemInfo, !mIsPinned);
             AbstractFloatingView.closeAllOpenViews(mTarget);
+        }
+
+        private static boolean isPinned(Context context, ItemInfo itemInfo) {
+            return AxSmartDrawerManager.isEnabled(context) ? AxSmartDrawerPinnedStore.isPinned(context, itemInfo) : PinnedAppsStore.isPinned(context, itemInfo);
+        }
+
+        private static void setPinned(Context context, ItemInfo itemInfo, boolean pinned) {
+            if (AxSmartDrawerManager.isEnabled(context)) {
+                AxSmartDrawerPinnedStore.setPinned(context, itemInfo, pinned);
+            } else {
+                PinnedAppsStore.setPinned(context, itemInfo, pinned);
+            }
         }
     }
 }

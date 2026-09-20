@@ -33,6 +33,8 @@ import android.widget.LinearLayout;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.android.launcher3.allapps.AxSmartDrawerManager;
+import com.android.launcher3.allapps.PinnedAppsStore;
 import com.android.launcher3.BubbleTextView;
 import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.DeviceProfile.OnDeviceProfileChangeListener;
@@ -210,7 +212,7 @@ public class PinnedAppsRowView extends LinearLayout implements OnDeviceProfileCh
 
     private void updatePinnedApps() {
         mPinnedApps.clear();
-        mPinnedApps.addAll(PinnedApps.getPinnedWorkspaceItems(getContext(), mAllAppsStore));
+        mPinnedApps.addAll(PinnedAppsStore.getPinnedWorkspaceItems(getContext(), mAllAppsStore));
         applyPinnedApps();
     }
 
@@ -239,11 +241,8 @@ public class PinnedAppsRowView extends LinearLayout implements OnDeviceProfileCh
             }
         }
 
-        boolean pinnedAppsVisible = pinnedCount > 0;
-        if (pinnedAppsVisible != mPinnedAppsVisible) {
-            mPinnedAppsVisible = pinnedAppsVisible;
-            updateVisibility();
-        }
+        mPinnedAppsVisible = pinnedCount > 0 && !AxSmartDrawerManager.isEnabled(getContext());
+        updateVisibility();
         if (mParent != null) {
             mParent.onHeightUpdated();
         }
@@ -287,12 +286,11 @@ public class PinnedAppsRowView extends LinearLayout implements OnDeviceProfileCh
             lp.weight = 1;
             iconRow.addView(icon);
         }
-        mAllAppsStore.registerIconContainer(iconRow);
         return iconRow;
     }
 
     private void updateVisibility() {
-        boolean visible = mPinnedAppsVisible && !AxSmartDrawerManager.isEnabled(getContext());
+        boolean visible = mPinnedAppsVisible;
         setVisibility(visible ? VISIBLE : GONE);
         for (int i = 0; i < getChildCount(); i++) {
             ViewGroup iconRow = (ViewGroup) getChildAt(i);
