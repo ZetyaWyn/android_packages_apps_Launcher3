@@ -89,6 +89,7 @@ filegroup {
 filegroup {
     name: "launcher-quickstep-src",
     srcs: [
+        ":ax_launcher_sources",
         "quickstep/src/**/*.kt",
         "quickstep/src/**/*.java",
     ],
